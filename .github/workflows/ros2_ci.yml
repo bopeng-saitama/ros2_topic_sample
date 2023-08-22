@@ -12,64 +12,21 @@ on:
 #     types: [published]
 
 jobs:
-  build_and_test:
+  industrial_ci:
     strategy:
       matrix:
-        os:
-          - ubuntu-22.04
-        rosdistro:
-          - humble
+        os: [ubuntu-22.04]
+        rosdistro: [humble]
 
-    runs-on: ubuntu-latest
-
-    container:
-      image: ros:${{ matrix.rosdistro }}-ros-base
+    runs-on: ${{ matrix.os }}
 
     steps:
-      - name: Setup directories
-        run: mkdir -p ros2_ws/src
-        
       - name: Check out repository
         uses: actions/checkout@v3
-        with:
-          path: ros2_ws/src/ros2_topic_sample
 
-      - name: Install dependencies
-        run: |
-          rosdep update && 
-          apt-get update && 
-          rosdep install --from-path . -i -y --rosdistro ${{ matrix.rosdistro }}
-
-      - name: Install diagnostic-updater
-        run: apt-get install ros-${{ matrix.rosdistro }}-diagnostic-updater
-
-      - name: Build tests
-        id: build_test
-        run: |
-          . /opt/ros/${{ matrix.rosdistro }}/setup.sh && 
-          colcon build
-        continue-on-error: true
-
-      - name: build_test command success
-        if: steps.build_test.outcome == 'success'
-        run: echo "result - success"
-
-      - name: build_test command failure
-        if: steps.build_test.outcome == 'failure'
-        run: echo "result - failure" && exit 1
-
-      - name: Run tests
-        id: run_test
-        run: |
-          . /opt/ros/${{ matrix.rosdistro }}/setup.sh &&
-          colcon test && 
-          colcon test-result
-        continue-on-error: true
-
-      - name: run_test command success
-        if: steps.run_test.outcome == 'success'
-        run: echo "result - success"
-
-      - name: run_test command failure
-        if: steps.run_test.outcome == 'failure'
-        run: echo "result - failure" && exit 1
+      - name: Run industrial_ci
+        uses: ros-industrial/industrial_ci@master
+        env:
+          ROS_DISTRO: ${{ matrix.rosdistro }}
+          ADDITIONAL_DEBS: "ros-${{ matrix.rosdistro }}-diagnostic-updater"
+          BEFORE_BUILD: "mkdir -p ros2_ws/src && ln -s $GITHUB_WORKSPACE ros2_ws/src/ros2_topic_sample"
