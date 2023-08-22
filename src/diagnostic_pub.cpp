@@ -29,7 +29,7 @@ public:
     subscription_ = create_subscription<std_msgs::msg::Float32>(
       "/data", 10, std::bind(&DiagnosticNode::dataCallback, this, std::placeholders::_1));
 
-    diagnostic_updater_.setHardwareID("MyDevice123");
+    diagnostic_updater_.setHardwareID("MyDevice123123");
     diagnostic_updater_.add(
       "Data Diagnostic",
       std::bind(&DiagnosticNode::diagnosticCallback, this, std::placeholders::_1));
